@@ -1,0 +1,335 @@
+---
+openapi: 3.0.1
+info:
+  title: Timeserver API
+  description: API of timeserver
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.0.1
+servers:
+  - url: http://localhost:8081/api
+    description: The timeserver API server
+  - url: http://{timeserver}:{port}/api
+    description: The timeserver API server
+    variables:
+      timeserver:
+        default: localhost
+      port:
+        default: '8081'
+tags:
+  - name: config
+    description: Everything related to configuration
+  - name: auth
+    description: Everything related to authentication.
+  - name: admin
+    description: Everything related to the admin API
+paths:
+  /log/level:
+    get:
+      tags:
+        - config
+      summary: Get logging level
+      operationId: getLogLevel
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogLevel'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - config
+      summary: Set logging level
+      operationId: setLogLevel
+      requestBody:
+        description: Logging Level
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogLevel'
+        required: true
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogLevel'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+  /timezone:
+    get:
+      tags:
+        - config
+      summary: Get time zone
+      operationId: getTimeZone
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeZone'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - config
+      summary: Set time zone
+      operationId: setTimeZone
+      requestBody:
+        description: Time Zone
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeZone'
+        required: true
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeZone'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+  /token:
+    get:
+      tags:
+        - auth
+      summary: Get a JWT token
+      operationId: getToken
+      parameters:
+        - in: query
+          name: role
+          schema:
+            type: string
+            enum:
+              - config:reader
+              - config:writer
+              - admin
+      security:
+        - apiKeyAuth: []
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+  /admin/keys:
+    get:
+      tags:
+        - admin
+      summary: List of all keys
+      operationId: adminGetKeys
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIKeys'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - admin
+      summary: Set API key info
+      operationId: adminSetKey
+      requestBody:
+        description: The API key info
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/APIKey'
+        required: true
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+  /admin/keys/{apiKeyID}:
+    get:
+      tags:
+        - admin
+      summary: Display API key info
+      operationId: adminGetKey
+      parameters:
+        - in: path
+          name: apiKeyID
+          required: true
+          schema:
+            type: string
+          description: The API key ID
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIKey'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - admin
+      summary: Delete API key
+      operationId: adminDeleteKey
+      parameters:
+        - in: path
+          name: apiKeyID
+          required: true
+          schema:
+            type: string
+          description: The API key ID
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+components:
+  schemas:
+    TimeZone:
+      type: object
+      properties:
+        timezone:
+          type: string
+          description: Time zone
+          example: Europe/Zurich
+      required: [timezone]
+    LogLevel:
+      type: object
+      properties:
+        level:
+          type: string
+          description: Loging level
+          enum:
+            - debug
+            - info
+            - error
+      required: [level]
+    Success:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Success message
+      required: [message]
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+      required: [error]
+    APIKey:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The API Key
+        role:
+          type: string
+          description: The role associated with the API key
+          enum:
+            - config:reader
+            - config:writer
+            - admin
+        user:
+          type: string
+          description: The user associated with the API key
+      required: [id, role, user]
+    APIKeys:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            description: The API Key
+          role:
+            type: string
+            description: The role associated with the API key
+            enum:
+              - config:reader
+              - config:writer
+              - admin
+          user:
+            type: string
+            description: The user associated with the API key
+        required: [id, role, user]
+    Token:
+      type: object
+      properties:
+        token:
+          type: string
+          description: The authentication token
+        role:
+          type: string
+          description: The role associated with the token
+          enum:
+            - config:reader
+            - config:writer
+            - admin
+        expires_at:
+          type: integer
+          description: The expiration time of the token
+      required: [token, role, expires_at]
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnauthorizedError:
+      description: Access token is missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+  - apiKeyAuth: []
