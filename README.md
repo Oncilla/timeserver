@@ -18,7 +18,7 @@ zone of the time that it serves, and adapt the logging level.
 
 By default, the time zone is UTC. With a simple call to the API, the time zone
 can be changed to any value in [IANA Time Zone
-Databas](https://www.iana.org/time-zones)
+Database](https://www.iana.org/time-zones)
 
 ```txt
 $ curl -X PUT "http://localhost:8081/api/timezone" -H  "X-API-KEY: 777269746572" -H  "Content-Type: application/json" -d "{\"timezone\":\"Europe/Zurich\"}"
